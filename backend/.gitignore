@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Database (Do not push your local database)
+db.sqlite3
+
+# Django secret files
+.env
+local_settings.py
+
+# Media and Static
+media/
+static/
+
+# OS generated files
+.DS_Store
+Thumbs.db
