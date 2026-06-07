@@ -48,8 +48,64 @@ def addToCart(req):
     return Response({'message':'Item added to cart',"cart":CartSerializer(cart).data})
 
 @api_view(['POST'])
+def updateQuantity(req):
+    item_id = req.data.get('item_id')
+    quantity = req.data.get('quantity')
+    if item_id is None or quantity is None:
+        return Response({'error':'Item id and quantity are required'},status=400)
+    try:
+        item = CartItem.objects.get(id=item_id)
+        if int(quantity) < 1:
+            item.delete()
+            return Response({'error':'Quantity must be at least 1'},status=400)
+        item.quantity = quantity    
+        item.save()
+        serializer = CartItemSerializer(item)
+        return Response(serializer.data)
+    except CartItem.DoesNotExist:
+        return Response({'error':'Item not found'},status=404)
+    
+
+@api_view(['POST'])
 def removeFromCart(req):
     item_id = req.data.get('item_id')
     CartItem.objects.filter(id=item_id).delete()
     return Response({'message':'Item removed from cart'})
     
+@api_view(['POST'])
+def createOrder(req):
+    try:
+        data = req.data
+        name = data.get('name')
+        address = data.get('address')
+        phone = data.get('phone')
+        pyment_method = data.get('payment_method','COD')
+
+        cart = Cart.objects.first()
+
+        if not cart or not cart.items.exists():
+            return Response({'error':'Cart is empty'},status=400)
+
+        total = sum (float(item.product.price) * item.quantity for item in cart.items.all())
+
+        order = Order.objects.create(
+            user=None,
+            total=total
+        )
+
+        for item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+
+        #Clear the cart
+        cart.items.all().delete()
+        return Response({'message':'Order created successfully',
+        "order_id":order.id
+        })
+    
+    except Exception as e:
+        return Response({'error':str(e)},status=400)

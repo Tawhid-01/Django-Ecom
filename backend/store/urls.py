@@ -9,6 +9,8 @@ urlpatterns = [
     path('cart/', views.getCart),
     path('cart/add/', views.addToCart),
     path('cart/remove/', views.removeFromCart),
+    path('cart/update/', views.updateQuantity),
+    path('orderss/create/', views.createOrder),
 
 ]
     

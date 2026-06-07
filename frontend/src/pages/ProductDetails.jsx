@@ -1,14 +1,18 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Added useNavigate
 import { useEffect, useState } from "react";
-// import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate(); // For smoother React Router navigation
   const BASEURL = import.meta.env.VITE_DJANGO_BASE_URL;
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const { addToCart } = useCart();
+  
+  // FIX 1: Uncommented hook to get access to addToCart
+  const { addToCart } = useCart();
 
   useEffect(() => {
     fetch(`${BASEURL}/api/products/${id}/`)
@@ -28,29 +32,41 @@ function ProductDetails() {
       });
   }, [id, BASEURL]);
 
+  const handleAddToCart = () => {
+    if (!localStorage.getItem('access_token')) {
+      navigate('/login');
+      return;
+    }
+
+    if (!product) return;
+
+    const cartProduct = {
+      id: product.id,
+      product_name: product.name,
+      product_image: product.image,
+      price: parseFloat(product.price),
+    };
+
+    addToCart(cartProduct);
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+     return <div className="text-center pt-20 font-medium text-gray-600">Loading product details...</div>;
   }
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="text-center pt-20 text-red-500 font-medium">Error: {error}</div>;
   }
   if (!product) {
-    return <div>No product found</div>;
+    return <div className="text-center pt-20 font-medium text-gray-600">No product found</div>;
   }
 
-  // const handleAddToCart = () => {
-  //   if(!localStorage.getItem('access_token')){
-  //     window.location.href = '/login';
-  //     return;
-  //   }
-  //   addToCart(product.id);
-  // }
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center py-10">
       <div className="bg-white shadow-lg rounded-2xl p-8 max-w-3xl w-full">
         <div className="flex flex-col md:flex-row gap-8">
+          {/* FIX 3: Conditionally prepend BASEURL if Django returns relative paths */}
           <img
-            src={`${product.image}`}
+            src={product.image?.startsWith('http') ? product.image : `${BASEURL}${product.image}`}
             alt={product.name}
             className="w-full md:w-1/2 h-auto object-cover rounded-lg"
           />
@@ -60,16 +76,22 @@ function ProductDetails() {
             </h1>
             <p className="text-gray-600 mb-4">{product.description}</p>
             <p className="text-2xl font-semibold text-green-600 mb-6">
-              {product.price}
+              ${parseFloat(product.price).toFixed(2)}
             </p>
-            <button  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            
+            {/* FIX 4: Linked to the protective handleAddToCart instead of direct execution */}
+            <button  
+              onClick={()=> addToCart(product.id)} 
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition w-full md:w-auto text-center"
+            >
                 Add to Cart 🛒
             </button>
+            
             {/* Home Button */}
             <div className="mt-4">
               <a
                 href="/"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:underline inline-block"
               >
                 &larr; Back to Home
               </a>
