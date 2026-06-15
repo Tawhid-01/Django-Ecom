@@ -1,25 +1,47 @@
-import {BrowserRouter as Router, Routes, Route} from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import ProductDetails from "../src/pages/ProductDetails";
-import ProductList from "../src/pages/ProductList";
-import CartPage from "../src/pages/CartPage";
-import Navbar from "../src/components/Navbar";
-import CheckoutPage from "../src/pages/CheckoutPage";
+// Pages (Standardized relative paths starting from the current directory)
+import Home from "./pages/Home";
+import ProductDetails from "./pages/ProductDetails"; // 👈 Standardized from "../src/pages"
+import ProductList from "./pages/ProductList";
+import CartPage from "./pages/CartPage";             // 👈 Standardized from "../src/pages"
+import CheckoutPage from "./pages/CheckoutPage";     // 👈 Standardized from "../src/pages"
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
- function App() {
+// Components
+import Navbar from "./components/Navbar";             // 👈 Standardized from "../src/components"
+import PrivateRouter from "./components/PrivateRouter";
+import AllProducts from "./pages/AllProducts";
+import Profile from "./pages/Profile";
+
+function App() {
   return (
     <Router>
-    <Navbar />
-    <Routes>
+      {/* Sticky Glassmorphism Navigation Header */}
+      <Navbar />
+      
+      <Routes>
+        {/* Unified Marketplace Landing Page */}
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<AllProducts />} />
+        {/* Public Catalog Routes */}
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/products" element={<ProductList />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/cart" element={<CartPage />} />
+        
+        {/* Protected Checkout Pipeline */}
+        <Route element={<PrivateRouter />}>
+          <Route path="/checkout" element={<CheckoutPage />} />
+        </Route>
 
-      <Route path="/" element={<ProductList />} />
-      <Route path="/product/:id" element={<ProductDetails />} />
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/checkout" element={<CheckoutPage />} />
-
-    </Routes>
+        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
     </Router>
   );
 }
 
-export default App
+export default App;
